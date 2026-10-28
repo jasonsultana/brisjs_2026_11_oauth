@@ -2,10 +2,12 @@ const path = require('path');
 const crypto = require('crypto');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const AUTH_COOKIE = 'auth';
+const JWT_SECRET = 'pixi-demo-signing-secret';
 
 // Demo only: single mock user and in-memory sessions (lost on restart)
 const MOCK_USER = { username: 'demo', password: 'demo1234' };
@@ -26,6 +28,7 @@ const PICTURES = [
 ];
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(cookieParser());
 app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
 
@@ -91,6 +94,35 @@ app.post('/authorize', (req, res) => {
 
   startSession(res, username);
   res.redirect(callback.toString());
+});
+
+app.post('/oauth/token', (req, res) => {
+  const { client_id, authorization_code, grant_type, code_verifier } = req.body;
+
+  if (grant_type !== 'authorization_code') {
+    return res.status(400).json({ error: 'unsupported_grant_type' });
+  }
+  if (client_id !== OAUTH_CLIENT.id) {
+    return res.status(400).json({ error: 'invalid_client' });
+  }
+
+  const authCode = authCodes.get(authorization_code);
+  authCodes.delete(authorization_code); // single-use
+  if (!authCode || authCode.clientId !== client_id) {
+    return res.status(400).json({ error: 'invalid_grant' });
+  }
+
+  const verifierHash = crypto.createHash('sha256').update(code_verifier ?? '').digest('base64url');
+  if (!code_verifier || verifierHash !== authCode.codeChallenge) {
+    return res.status(400).json({ error: 'invalid_grant' });
+  }
+
+  const access_token = jwt.sign(
+    { sub: authCode.username, client_id, scope: authCode.scope },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+  res.json({ access_token, token_type: 'Bearer', expires_in: 3600, scope: authCode.scope });
 });
 
 app.get('/pictures', (req, res) => {
