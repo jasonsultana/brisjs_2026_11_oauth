@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixi</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f4f4f7; color: #222; }
+    header { background: #1d1f2b; color: #fff; padding: 1rem 2rem; }
+    header h1 { margin: 0; font-size: 1.5rem; }
+    header p { margin: .25rem 0 0; font-size: .875rem; color: #bbb; }
+    main { padding: 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+    .card img { width: 100%; display: block; }
+    .card div { padding: .75rem 1rem; }
+    .card h2 { font-size: 1rem; margin: 0 0 .25rem; }
+    .card p { margin: 0; color: #666; font-size: .875rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pixi</h1>
+    <p id="welcome"></p>
+  </header>
+  <main>
+    <div class="grid" id="pictures"></div>
+  </main>
+  <script>
+    async function loadPictures() {
+      const res = await fetch('/pictures');
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+
+      const { user, pictures } = await res.json();
+      document.getElementById('welcome').textContent = `Signed in as ${user}`;
+
+      const grid = document.getElementById('pictures');
+      for (const pic of pictures) {
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        const img = document.createElement('img');
+        img.src = pic.url;
+        img.alt = pic.title;
+
+        const body = document.createElement('div');
+        const title = document.createElement('h2');
+        title.textContent = pic.title;
+        const year = document.createElement('p');
+        year.textContent = pic.year;
+        body.append(title, year);
+
+        card.append(img, body);
+        grid.append(card);
+      }
+    }
+
+    loadPictures();
+  </script>
+</body>
+</html>

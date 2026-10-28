@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pixi - Sign in</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #1d1f2b; }
+    form { background: #fff; padding: 2rem; border-radius: 8px; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,.3); }
+    h1 { margin: 0 0 1.5rem; font-size: 1.5rem; }
+    label { display: block; font-size: .875rem; margin-bottom: .25rem; }
+    input { width: 100%; box-sizing: border-box; padding: .5rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { width: 100%; padding: .6rem; background: #e4572e; color: #fff; border: 0; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+    .error { color: #b00020; font-size: .875rem; margin-bottom: 1rem; }
+    .hint { color: #666; font-size: .75rem; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <form method="post">
+    <h1>Sign in to Pixi</h1>
+    <p id="error" class="error" hidden>Invalid username or password.</p>
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Sign in</button>
+    <p class="hint">Demo user: demo / demo1234</p>
+  </form>
+  <script>
+    if (new URLSearchParams(window.location.search).has('error')) {
+      document.getElementById('error').hidden = false;
+    }
+  </script>
+</body>
+</html>

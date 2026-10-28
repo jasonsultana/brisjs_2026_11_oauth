@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#1d1f2b"/>
+  <rect y="355" width="800" height="95" fill="#2b2e3b"/>
+  <path d="M110 300 L110 255 Q115 235 150 228 L260 205 Q330 135 440 130 Q520 128 575 200 L660 218 Q700 226 700 265 L700 300 Z" fill="#e4572e"/>
+  <path d="M300 205 Q345 152 435 150 Q500 150 545 205 Z" fill="#9fc3d6" opacity="0.85"/>
+  <circle cx="230" cy="305" r="58" fill="#000"/>
+  <circle cx="580" cy="305" r="58" fill="#000"/>
+  <circle cx="230" cy="305" r="50" fill="#111"/>
+  <circle cx="580" cy="305" r="50" fill="#111"/>
+  <circle cx="230" cy="305" r="24" fill="#c9c9c9"/>
+  <circle cx="580" cy="305" r="24" fill="#c9c9c9"/>
+  <text x="30" y="60" font-family="Arial, sans-serif" font-size="34" fill="#ffffff">1993 Mazda RX-7 (FD)</text>
+</svg>
