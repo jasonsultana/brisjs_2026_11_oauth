@@ -132,6 +132,16 @@ app.get('/pictures', (req, res) => {
   res.json({ user, pictures: PICTURES });
 });
 
+app.get('/api/pictures', (req, res) => {
+  const token = req.headers.authorization?.replace(/^Bearer /, '');
+  try {
+    const claims = jwt.verify(token, JWT_SECRET);
+    res.json({ user: claims.sub, pictures: PICTURES });
+  } catch {
+    res.status(401).json({ error: 'invalid_token' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Pixi running at http://localhost:${PORT}`);
 });
