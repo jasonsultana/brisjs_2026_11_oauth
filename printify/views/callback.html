@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Select pictures</title>
+  <style>
+    body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; background: #f3f4f6; color: #111827; }
+    main { padding: 2rem; max-width: 960px; margin: 0 auto; }
+    p { color: #4b5563; }
+    p.error { color: #b91c1c; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+    .picture { background: #fff; border-radius: 12px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); padding: 1rem; cursor: pointer; display: flex; flex-direction: column; gap: 0.5rem; border: 3px solid transparent; }
+    .picture:has(input:checked) { border-color: #2563eb; }
+    .picture input { align-self: flex-end; }
+    .picture img { width: 100%; border-radius: 8px; }
+    .picture span { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Select pictures to print</h1>
+    <p id="status">Exchanging code and loading pictures...</p>
+    <p id="summary" hidden>Selected: <span id="count">0</span></p>
+    <div class="grid" id="grid"></div>
+  </main>
+  <script src="/config.js"></script>
+  <script>
+    const { pixiUrl, clientId } = window.PRINTIFY_CONFIG;
+    const status = document.getElementById('status');
+
+    function showError(message) {
+      status.textContent = message;
+      status.classList.add('error');
+    }
+
+    function renderPictures(user, pictures) {
+      status.textContent = `Connected to Pixi as ${user}.`;
+      document.getElementById('summary').hidden = false;
+
+      const grid = document.getElementById('grid');
+      const count = document.getElementById('count');
+      const update = () => {
+        count.textContent = grid.querySelectorAll('input:checked').length;
+      };
+
+      for (const picture of pictures) {
+        const label = document.createElement('label');
+        label.className = 'picture';
+
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.value = picture.id;
+        box.addEventListener('change', update);
+
+        const img = document.createElement('img');
+        img.src = `${pixiUrl}${picture.url}`;
+        img.alt = picture.title;
+
+        const title = document.createElement('span');
+        title.textContent = picture.title;
+
+        label.append(box, img, title);
+        grid.append(label);
+      }
+    }
+
+    async function connect() {
+      const params = new URLSearchParams(location.search);
+      if (params.get('error')) return showError(`Pixi returned: ${params.get('error')}`);
+
+      const pkceCookie = document.cookie.split('; ').find((c) => c.startsWith('pkce='));
+      document.cookie = 'pkce=; path=/callback; max-age=0'; // single-use
+      const [expectedState, codeVerifier] = pkceCookie ? pkceCookie.slice('pkce='.length).split('.') : [];
+      const code = params.get('code');
+      if (!code || !codeVerifier || params.get('state') !== expectedState) {
+        return showError('Unknown or expired state.');
+      }
+
+      try {
+        const tokenRes = await fetch(`${pixiUrl}/oauth/token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            client_id: clientId,
+            grant_type: 'authorization_code',
+            authorization_code: code,
+            code_verifier: codeVerifier,
+          }),
+        });
+        const token = await tokenRes.json();
+        if (!tokenRes.ok) return showError(`Token exchange failed: ${token.error}`);
+
+        const picturesRes = await fetch(`${pixiUrl}/api/pictures`, {
+          headers: { Authorization: `Bearer ${token.access_token}` },
+        });
+        const body = await picturesRes.json();
+        if (!picturesRes.ok) return showError(`Could not load pictures: ${body.error}`);
+
+        renderPictures(body.user, body.pictures);
+      } catch (err) {
+        showError(`Could not reach Pixi: ${err.message}`);
+      }
+    }
+
+    connect();
+  </script>
+</body>
+</html>

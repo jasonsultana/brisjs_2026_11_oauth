@@ -20,12 +20,26 @@ const OAUTH_CLIENT = {
 const authCodes = new Map(); // code -> { username, clientId, redirectUri, scope, codeChallenge }
 
 const PICTURES = [
-  { id: 1, title: '1993 Mazda RX-7 (FD)', year: 1993, url: '/images/rx7.svg' },
-  { id: 2, title: '1994 Toyota Supra (A80)', year: 1994, url: '/images/supra.svg' },
-  { id: 3, title: '1992 Honda NSX (NA1)', year: 1992, url: '/images/nsx.svg' },
-  { id: 4, title: '1991 Nissan Skyline GT-R (R32)', year: 1991, url: '/images/skyline.svg' },
-  { id: 5, title: '1995 Honda Integra Type R (DC2)', year: 1995, url: '/images/integra.svg' },
+  { id: 1, title: '1993 Mazda RX-7 (FD)', year: 1993, url: '/images/rx7.jpg' },
+  { id: 2, title: '1994 Toyota Supra (A80)', year: 1994, url: '/images/supra.jpg' },
+  { id: 3, title: '1992 Honda NSX (NA1)', year: 1992, url: '/images/nsx.jpg' },
+  { id: 4, title: '1991 Nissan Skyline GT-R (R32)', year: 1991, url: '/images/skyline.jpg' },
+  { id: 5, title: '1995 Honda Integra Type R (DC2)', year: 1995, url: '/images/integra.jpg' },
 ];
+
+const CORS_ORIGINS = ['http://localhost:4000'];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (CORS_ORIGINS.includes(origin)) {
+    res.set({
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    });
+  }
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
