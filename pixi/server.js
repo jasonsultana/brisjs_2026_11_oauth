@@ -10,7 +10,7 @@ const AUTH_COOKIE = 'auth';
 const JWT_SECRET = 'pixi-demo-signing-secret';
 
 // Demo only: single mock user and in-memory sessions (lost on restart)
-const MOCK_USER = { username: 'demo', password: 'demo1234' };
+const MOCK_USER = { username: 'demo', password: 'demo1234', firstName: 'Demo', lastName: 'User' };
 const sessions = new Map(); // token -> username
 
 const OAUTH_CLIENT = {
@@ -136,7 +136,15 @@ app.post('/oauth/token', (req, res) => {
     JWT_SECRET,
     { expiresIn: '1h' }
   );
-  res.json({ access_token, token_type: 'Bearer', expires_in: 3600, scope: authCode.scope });
+
+  // Here we'll also include an OIDC ID token, but in practice, this would depend on the scopes requested by the client
+  const id_token = jwt.sign(
+    { sub: authCode.username, client_id, scope: authCode.scope, given_name: MOCK_USER.firstName, family_name: MOCK_USER.lastName },
+    JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+
+  res.json({ access_token, id_token, token_type: 'Bearer', expires_in: 3600, scope: authCode.scope });
 });
 
 app.get('/pictures', (req, res) => {
